@@ -87,6 +87,8 @@ const els = {
   weekPickerList: document.getElementById('weekPickerList'),
   btnCloseWeekPicker: document.getElementById('btnCloseWeekPicker'),
   weekEmptyState: document.getElementById('weekEmptyState'),
+  /** 课表卡片滚动容器；换周后需滚回顶部 */
+  scheduleScroll: document.querySelector('#viewSchedule .schedule-scroll'),
   days: document.getElementById('days'),
   btnPrev: document.getElementById('btnPrev'),
   btnNext: document.getElementById('btnNext'),
@@ -664,7 +666,22 @@ function escapeHtml(s) {
 }
 
 /**
+ * 将课程卡片滚动区重置到顶部。
+ * <p>换周、点「本周」、从选择周次弹层选周后调用，避免仍停在上一周的滚动位置。</p>
+ *
+ * @returns {void}
+ * @see renderSchedule
+ */
+function scrollScheduleToTop() {
+  const scroller = els.scheduleScroll;
+  if (!scroller) return;
+  scroller.scrollTop = 0;
+}
+
+/**
  * 渲染当前周视图。
+ * <p>写完 DOM 后调用 {@link scrollScheduleToTop}，保证更换周次后课程卡片从顶部开始看。</p>
+ *
  * @returns {void}
  */
 function renderSchedule() {
@@ -737,6 +754,8 @@ function renderSchedule() {
   els.btnPrev.disabled = outside || weekIndex <= 0;
   els.btnNext.disabled = outside || weekIndex >= weeks.length - 1;
   updateTodayButtonState();
+  // 左右箭头 / 选择周次 /「本周」最终都走这里，统一置顶
+  scrollScheduleToTop();
 }
 
 /**
