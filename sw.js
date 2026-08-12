@@ -2,7 +2,7 @@
  * Service Worker：离线可打开；脚本/样式始终绕过 HTTP 缓存拉最新。
  */
 
-const CACHE = 'schedule-pwa-v80';
+const CACHE = 'schedule-pwa-v81';
 const ASSETS = [
   './index.html',
   './css/app.css',

@@ -835,6 +835,13 @@ function showImport(message = '', opts = {}) {
   els.headerSub.textContent = '';
   applyBrandTitle();
 
+  // 重新导入等场景：清掉卡住的 busy / 旧文件，避免上传区点不动
+  if (opts.resetPending) {
+    importing = false;
+    if (els.pdfInput) els.pdfInput.value = '';
+    els.uploadArea?.classList.remove('is-busy');
+  }
+
   const ready = !!pendingSchedule?.weeks?.length;
   const elective = isElectiveMode(pendingSchedule);
   if (els.classStep) els.classStep.hidden = !(ready && !elective);
@@ -1048,6 +1055,8 @@ function registerSW() {
 
 /**
  * 绑定文件选择：change + input，兼容部分安卓机型只触发其一。
+ * <p>上传区额外提供一次编程式 {@code input.click()}，避免设置弹层关闭后 label 点按失灵。</p>
+ *
  * @returns {void}
  */
 function bindPdfInput() {
@@ -1073,6 +1082,18 @@ function bindPdfInput() {
 
   els.pdfInput.addEventListener('change', onPick);
   els.pdfInput.addEventListener('input', onPick);
+
+  // 设置里「重新导入」关弹层后，部分 WebView 上 label 无法唤起文件框
+  els.uploadArea?.addEventListener('click', (event) => {
+    if (els.uploadArea.classList.contains('is-busy')) return;
+    if (event.target === els.pdfInput) return;
+    event.preventDefault();
+    try {
+      els.pdfInput.click();
+    } catch {
+      /* 忽略无用户手势等异常 */
+    }
+  });
 }
 
 try {
@@ -1179,7 +1200,10 @@ els.btnSaveSettings.addEventListener('click', async () => {
 els.btnReimport.addEventListener('click', () => {
   els.settingsDialog.close();
   els.uploadLabel.textContent = '点此选择 PDF 文件';
-  showImport('', { resetPending: true });
+  // 下一帧再切到导入页，避免 dialog 关闭瞬间吞掉随后的文件选择手势
+  requestAnimationFrame(() => {
+    showImport('', { resetPending: true });
+  });
 });
 
 /**
