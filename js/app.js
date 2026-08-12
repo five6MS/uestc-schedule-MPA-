@@ -75,6 +75,8 @@ const els = {
   courseGroups: document.getElementById('courseGroups'),
   btnConfirmCourses: document.getElementById('btnConfirmCourses'),
   pdfInput: document.getElementById('pdfInput'),
+  pdfInputFallback: document.getElementById('pdfInputFallback'),
+  standaloneFileFallback: document.getElementById('standaloneFileFallback'),
   uploadArea: document.getElementById('uploadArea'),
   uploadLabel: document.getElementById('uploadLabel'),
   importStatus: document.getElementById('importStatus'),
@@ -1054,26 +1056,60 @@ function registerSW() {
 }
 
 /**
- * 在用户手势中打开系统文件选择器（兜底；安卓 PWA 优先靠全尺寸 file 原生点击）。
+ * 是否处于「添加到主屏幕 / 安装应用」后的独立窗口（非普通浏览器标签页）。
  *
- * @returns {void}
+ * @returns {boolean} standalone / fullscreen / minimal-ui 或 iOS navigator.standalone
  */
-function openPdfPicker() {
-  if (!els.pdfInput || els.uploadArea?.classList.contains('is-busy') || importing) {
-    return;
+function isStandalonePwa() {
+  const modes = ['standalone', 'fullscreen', 'minimal-ui'];
+  if (modes.some((m) => window.matchMedia(`(display-mode: ${m})`).matches)) {
+    return true;
   }
-  try {
-    // 不在此处清空 value：部分安卓会打断紧接着的 click
-    els.pdfInput.click();
-  } catch (err) {
-    console.warn('openPdfPicker failed', err);
-    setImportStatus('无法打开文件选择，请到系统浏览器中打开本页再上传', 'error');
-  }
+  // iOS Safari 旧字段
+  return /** @type {Navigator & {standalone?: boolean}} */ (navigator).standalone === true;
 }
 
 /**
- * 绑定文件选择：change + input，兼容部分安卓机型只触发其一。
- * <p>安卓桌面应用以全尺寸半透明 file 原生点击为主；外层再兜底一次 {@code click()}。</p>
+ * 独立窗口下放宽 accept，避免 WebAPK 因 MIME/扩展名过滤导致选择器「点了没反应」。
+ *
+ * @param {HTMLInputElement|null} input file 控件
+ * @returns {void}
+ */
+function relaxAcceptForStandalone(input) {
+  if (!input || !isStandalonePwa()) return;
+  // 不设 accept，由 importPdf 校验是否为 PDF
+  input.removeAttribute('accept');
+}
+
+/**
+ * 绑定单个 file 的 change/input，选中后走 {@link importPdf}。
+ *
+ * @param {HTMLInputElement|null} input 主上传或兜底上传控件
+ * @param {{getToken:()=>string,setToken:(t:string)=>void}} tokenState 防重复选择状态
+ * @returns {void}
+ */
+function bindOnePdfInput(input, tokenState) {
+  if (!input) return;
+  const onPick = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const token = `${file.name}:${file.size}:${file.lastModified}`;
+    if (token === tokenState.getToken() && importing) return;
+    tokenState.setToken(token);
+    setImportStatus(`已选中：${file.name}，开始解析…`);
+    await importPdf(file);
+    window.setTimeout(() => {
+      input.value = '';
+      tokenState.setToken('');
+    }, 500);
+  };
+  input.addEventListener('change', onPick);
+  input.addEventListener('input', onPick);
+}
+
+/**
+ * 绑定文件选择（浏览器 + 安卓桌面 PWA）。
+ * <p>独立窗口显示系统原生文件按钮兜底；并去掉过严 accept，避免 WebAPK 选择器起不来。</p>
  *
  * @returns {void}
  */
@@ -1083,40 +1119,24 @@ function bindPdfInput() {
     return;
   }
 
+  relaxAcceptForStandalone(els.pdfInput);
+  relaxAcceptForStandalone(els.pdfInputFallback);
+
+  // 桌面应用：露出系统原生 file 控件（透明覆盖层在 WebAPK 上经常无效）
+  if (els.standaloneFileFallback) {
+    els.standaloneFileFallback.hidden = !isStandalonePwa();
+  }
+
   let lastToken = '';
-  const onPick = async () => {
-    const file = els.pdfInput.files?.[0];
-    if (!file) return;
-    const token = `${file.name}:${file.size}:${file.lastModified}`;
-    if (token === lastToken && importing) return;
-    lastToken = token;
-    setImportStatus(`已选中：${file.name}，开始解析…`);
-    await importPdf(file);
-    window.setTimeout(() => {
-      els.pdfInput.value = '';
-      lastToken = '';
-    }, 500);
+  const tokenState = {
+    getToken: () => lastToken,
+    setToken: (t) => {
+      lastToken = t;
+    },
   };
 
-  els.pdfInput.addEventListener('change', onPick);
-  els.pdfInput.addEventListener('input', onPick);
-
-  // 点到 file 本身：走原生，勿 preventDefault（安卓独立窗口会因此打不开）
-  els.uploadArea?.addEventListener('click', (event) => {
-    if (els.uploadArea.classList.contains('is-busy') || importing) {
-      event.preventDefault();
-      return;
-    }
-    if (event.target === els.pdfInput) return;
-    openPdfPicker();
-  });
-
-  els.uploadArea?.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      openPdfPicker();
-    }
-  });
+  bindOnePdfInput(els.pdfInput, tokenState);
+  bindOnePdfInput(els.pdfInputFallback, tokenState);
 }
 
 try {

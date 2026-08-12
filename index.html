@@ -16,11 +16,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- iOS「添加到主屏幕」显示名；Android/Chrome 主要读 manifest.short_name -->
     <meta name="apple-mobile-web-app-title" content="MPA课表" />
-    <link rel="manifest" href="./manifest.webmanifest?v=83" />
+    <link rel="manifest" href="./manifest.webmanifest?v=84" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="icon" href="./icons/icon-192.png" />
     <title>电子科大MPA课表</title>
-    <link rel="stylesheet" href="./css/app.css?v=83" />
+    <link rel="stylesheet" href="./css/app.css?v=84" />
   </head>
   <body>
     <div class="app">
@@ -60,8 +60,7 @@
 
         <h1>导入课表</h1>
 
-        <!-- 安卓桌面 PWA：file 需铺满可点（勿 clip/pointer-events:none），否则点击无反应 -->
-        <div class="upload" id="uploadArea" role="button" tabindex="0" aria-label="选择课表 PDF 文件">
+        <label class="upload" id="uploadArea" for="pdfInput">
           <input
             id="pdfInput"
             class="file-input"
@@ -69,6 +68,16 @@
             accept="application/pdf,.pdf"
           />
           <span id="uploadLabel">点此选择 PDF 文件</span>
+        </label>
+        <!-- 安卓「添加到主屏幕」独立窗口：透明覆盖层常失效，提供系统原生文件按钮兜底 -->
+        <div id="standaloneFileFallback" class="standalone-file-fallback" hidden>
+          <p class="standalone-file-hint">若上方点击无反应，请使用系统文件选择：</p>
+          <input
+            id="pdfInputFallback"
+            class="file-input-fallback"
+            type="file"
+            accept="application/pdf,.pdf"
+          />
         </div>
 
         <p class="status" id="importStatus" role="status"></p>
@@ -189,7 +198,7 @@
     </div>
 
     <script type="module">
-      import('./js/app.js?v=83').catch((err) => {
+      import('./js/app.js?v=84').catch((err) => {
         const el = document.getElementById('importStatus');
         if (el) {
           el.textContent =

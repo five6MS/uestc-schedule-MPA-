@@ -221,12 +221,12 @@ select:focus {
   cursor: pointer;
   font-weight: 700;
   color: var(--bg);
+  overflow: hidden;
 }
 
 /*
- * 安卓「添加到主屏幕」独立窗口：
- * - 不要用 clip / 1px / pointer-events:none，编程 click 与原生点击都会失效
- * - 用接近透明的全尺寸覆盖层直接接收点击（opacity 用 0.01，不要用 0）
+ * 全尺寸可点 file：opacity 用 0.01（不要 0）；font-size 加大是安卓经典命中区修复。
+ * 父级不要对 .upload 设 opacity（is-dimmed），否则部分 WebAPK 里 file 会点不动。
  */
 .file-input {
   position: absolute;
@@ -240,7 +240,7 @@ select:focus {
   border: 0;
   opacity: 0.01;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 100px;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -255,16 +255,47 @@ select:focus {
 }
 
 .upload.is-busy {
-  opacity: 0.72;
   pointer-events: none;
 }
 
-.upload.is-dimmed {
+.upload.is-busy #uploadLabel {
+  opacity: 0.72;
+}
+
+.upload.is-dimmed #uploadLabel {
   opacity: 0.55;
 }
 
 .upload[hidden] {
   display: none !important;
+}
+
+/* 桌面 PWA 兜底：系统原生文件控件（不透明、不覆盖），WebAPK 上最稳 */
+.standalone-file-fallback {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line-gold);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.standalone-file-fallback[hidden] {
+  display: none !important;
+}
+
+.standalone-file-hint {
+  margin: 0 0 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.file-input-fallback {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
+  padding: 8px 0;
 }
 
 .class-step {
