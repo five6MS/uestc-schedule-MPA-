@@ -154,8 +154,10 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  margin: 0 -4px;
-  padding: 0 4px 8px;
+  /* 两侧对称留白；stable both-edges 避免滚动条只挤占右侧 */
+  margin: 0;
+  padding: 0 0 8px;
+  scrollbar-gutter: stable both-edges;
 }
 
 .panel h1 {
@@ -199,6 +201,8 @@ select {
     no-repeat right 12px center;
   color: var(--ink);
   touch-action: manipulation;
+  /* 仅 accent-color；勿改 option 文字色，部分浏览器会白字无底导致选项“消失” */
+  accent-color: var(--bg);
 }
 
 select:focus {
@@ -272,6 +276,14 @@ select:focus {
 .course-group h3 {
   margin: 0 0 12px;
   font-size: 0.95rem;
+  color: var(--bg);
+}
+
+/** 设置页「选择课程」与分组标题「N选一」同级字号 */
+.settings-course-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--bg);
 }
 
@@ -361,6 +373,14 @@ select:focus {
   border-top: 1px solid var(--line);
 }
 
+/* 使用说明置于「导入课表」上方时：底部分隔，与标题留白 */
+.tip.tip-top {
+  margin: 0 0 14px;
+  padding: 0 0 12px;
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+}
+
 .ghost,
 .primary,
 .danger {
@@ -397,12 +417,11 @@ dialog .ghost {
 
 .week-nav {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 48px;
-  gap: 8px;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 6px;
   align-items: center;
-  min-height: 48px;
-  margin-bottom: 10px;
-  padding-bottom: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -410,8 +429,8 @@ dialog .ghost {
 .nav-btn {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   margin: 0;
   border: 1px solid rgba(212, 175, 55, 0.35);
@@ -426,8 +445,8 @@ dialog .ghost {
 
 .nav-btn svg {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .nav-btn:disabled {
@@ -440,22 +459,22 @@ dialog .ghost {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 2px;
   text-align: center;
-  min-height: 42px;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .week-title strong {
-  display: block;
-  font-size: 1.12rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--bg);
 }
 
 .week-term {
-  display: block;
-  margin-top: 4px;
   color: var(--muted);
-  font-size: 0.9rem;
+  /* 相对日期再小两号，层次更轻 */
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
@@ -477,83 +496,36 @@ dialog .ghost {
   box-shadow: 0 8px 24px rgba(6, 40, 30, 0.18);
 }
 
-#btnToday.is-current {
-  background: rgba(10, 61, 46, 0.06);
-  color: #8a9791;
-  border-color: rgba(10, 61, 46, 0.12);
-  cursor: default;
-}
-
-#btnToday.is-active {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  color: var(--bg-deep);
-  border-color: transparent;
-  font-weight: 700;
-}
-
 .week-jump {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: end;
-  margin-bottom: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 10px;
 }
 
-.week-jump-main {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.week-jump-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--muted);
-  padding-left: 2px;
-}
-
-.week-picker-btn {
-  display: flex;
+.week-picker-btn,
+.week-today-btn {
+  display: inline-flex;
   align-items: center;
-  min-height: 48px;
-  padding: 12px 14px;
-  border: 1.5px solid var(--line-gold);
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid var(--line-gold);
   border-radius: var(--radius-sm);
-  background: #fff;
-  color: var(--ink);
-  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
 }
 
-.week-picker-btn:active {
-  background: rgba(212, 175, 55, 0.12);
-}
-
 .week-picker-value {
-  /* 与右侧「本周」同字号，保证「第二周 09月12日 – 09月13日」单行显示 */
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--bg);
-  font-variant-numeric: tabular-nums;
-  font-family: ui-monospace, "Cascadia Mono", "Segoe UI", "PingFang SC", "Microsoft YaHei", monospace;
+  color: inherit;
   line-height: 1.3;
-  letter-spacing: 0.01em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.week-today-btn {
-  min-width: 72px;
-  min-height: 48px;
-  padding: 0 14px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .week-picker-dialog {
@@ -654,7 +626,8 @@ dialog .ghost {
   border: 1px solid var(--line);
   border-top: 3px solid var(--gold);
   border-radius: var(--radius);
-  padding: 12px 12px 8px;
+  /* 左右内边距一致 */
+  padding: 12px;
 }
 
 .day h2 {
@@ -676,9 +649,11 @@ dialog .ghost {
 .slot {
   display: grid;
   gap: 3px;
-  padding: 10px 8px;
+  /* 左右内边距一致，与日期卡片左右留白对齐 */
+  padding: 10px 12px;
   border-top: 1px dashed var(--line);
   border-radius: var(--radius-sm);
+  box-sizing: border-box;
 }
 
 .slot:first-of-type {

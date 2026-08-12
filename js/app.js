@@ -217,19 +217,13 @@ function weekLabelHtml(baseLabel, empty) {
 }
 
 /**
- * 当前选择周次按钮上的文案。
- * <p>仅周次与日期；不追加「无课」——主界面已有空态插图「本周无课」，避免累赘。</p>
+ * 当前「选择周次」按钮文案。
+ * <p>固定为「选择周次」，避免与上方周导航日期重复；具体周次在弹层列表中展示。</p>
  *
  * @returns {string} 安全 HTML
  */
 function currentWeekPickerLabelHtml() {
-  const weeks = store?.schedule?.weeks || [];
-  const weekendOnly = store?.schedule?.weekendOnly !== false;
-  if (weekIndex < 0) return escapeHtml('本周（不在课表内）');
-  const week = weeks[weekIndex];
-  if (!week) return escapeHtml('选择周次');
-  // 按钮不加「无课」；弹层列表仍用 weekLabelHtml 标注便于扫周
-  return escapeHtml(weekJumpLabel(week, weekendOnly));
+  return escapeHtml('选择周次');
 }
 
 /**
@@ -249,14 +243,8 @@ function fillWeekSelect() {
   }
 
   /** @type {{value:number,labelHtml:string,selected:boolean}[]} */
+  // 列表只列课表周次，不插入「本周」项（本周用独立按钮进入）
   const items = [];
-  if (weekIndex < 0) {
-    items.push({
-      value: -1,
-      labelHtml: escapeHtml('本周（不在课表内）'),
-      selected: true,
-    });
-  }
   for (const { w, i } of jumpable) {
     items.push({
       value: i,
@@ -650,14 +638,12 @@ function renderDay(day, resolveCell) {
 }
 
 /**
- * 更新「本周」按钮高亮：已在本周则灰色，否则金色高亮。
+ * 同步「本周」按钮样式：始终与「选择周次」同为 ghost，不再因已在本周而置灰。
+ *
  * @returns {void}
  */
 function updateTodayButtonState() {
-  const current = currentWeekIndex(store?.schedule?.weeks || []);
-  const onThisWeek = weekIndex === current;
-  els.btnToday.classList.toggle('is-current', onThisWeek);
-  els.btnToday.classList.toggle('is-active', !onThisWeek);
+  els.btnToday.classList.remove('is-current', 'is-active');
 }
 
 /**
@@ -733,9 +719,15 @@ function renderSchedule() {
     ? weekRangeText(week)
     : fullWeekRangeText(week);
 
-  const showTerm = weekendOnly && !outside && hasTermWeekLabel(week);
-  els.weekTerm.hidden = !showTerm;
-  els.weekTerm.textContent = showTerm ? week.weekLabel : '';
+  // 本周不在课表周次内：日期下提示「不在学期内」；否则显示「第 N 周」
+  if (outside) {
+    els.weekTerm.hidden = false;
+    els.weekTerm.textContent = '不在学期内';
+  } else {
+    const showTerm = weekendOnly && hasTermWeekLabel(week);
+    els.weekTerm.hidden = !showTerm;
+    els.weekTerm.textContent = showTerm ? week.weekLabel : '';
+  }
 
   // 与周次列表共用同一套无课判定，避免「主界面空、列表未标无课」
   const empty = isWeekEmptyForView(week);

@@ -16,11 +16,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- iOS「添加到主屏幕」显示名；Android/Chrome 主要读 manifest.short_name -->
     <meta name="apple-mobile-web-app-title" content="MPA课表" />
-    <link rel="manifest" href="./manifest.webmanifest?v=61" />
+    <link rel="manifest" href="./manifest.webmanifest?v=80" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="icon" href="./icons/icon-192.png" />
     <title>电子科大MPA课表</title>
-    <link rel="stylesheet" href="./css/app.css?v=61" />
+    <link rel="stylesheet" href="./css/app.css?v=80" />
   </head>
   <body>
     <div class="app">
@@ -50,7 +50,15 @@
       </header>
 
       <main id="viewImport" class="panel">
-        <h1>导入课表 PDF</h1>
+        <p class="tip tip-top">
+          <strong>使用说明</strong><br />
+          步骤 1：用手机浏览器打开（微信进入后点右上角 ⋮ → 在浏览器打开）<br />
+          步骤 2：添加到主屏幕<br />
+          Android：浏览器菜单 → 添加到主屏幕 / 安装应用<br />
+          iPhone：Safari 底部分享 → 添加到主屏幕
+        </p>
+
+        <h1>导入课表</h1>
 
         <label class="upload" id="uploadArea" for="pdfInput">
           <!-- 不用 hidden：部分安卓自带浏览器对 display:none 的 file 选完无 change -->
@@ -75,18 +83,16 @@
         </section>
 
         <section id="courseStep" class="class-step" hidden>
-          <p class="field" style="margin-bottom: 8px">每组任选 1 门课</p>
+          <p class="settings-course-title">选择课程</p>
           <div id="courseGroups" class="course-groups"></div>
           <button type="button" class="primary block" id="btnConfirmCourses">进入课表</button>
         </section>
-
-        <p class="tip">安卓：浏览器右上角菜单 → 添加到主屏幕 / 安装应用<br />苹果：Safari 分享 → 添加到主屏幕</p>
       </main>
 
       <main id="viewSchedule" class="panel" hidden>
         <div class="week-nav">
           <button type="button" class="nav-btn" id="btnPrev" aria-label="上一周">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
             </svg>
           </button>
@@ -95,18 +101,15 @@
             <span id="weekTerm" class="week-term" hidden></span>
           </div>
           <button type="button" class="nav-btn" id="btnNext" aria-label="下一周">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <path fill="currentColor" d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
             </svg>
           </button>
         </div>
         <div class="week-jump" id="weekJump">
-          <div class="week-jump-main">
-            <span class="week-jump-label">选择周次</span>
-            <button type="button" class="week-picker-btn" id="btnWeekPicker" aria-haspopup="dialog" aria-label="选择周次">
-              <span class="week-picker-value" id="weekPickerValue">选择周次</span>
-            </button>
-          </div>
+          <button type="button" class="week-picker-btn ghost" id="btnWeekPicker" aria-haspopup="dialog" aria-label="选择周次">
+            <span class="week-picker-value" id="weekPickerValue">选择周次</span>
+          </button>
           <button type="button" class="week-today-btn ghost" id="btnToday">本周</button>
         </div>
         <!-- 仅课程卡片区滚动；周次导航与选择周次固定在上方 -->
@@ -148,7 +151,7 @@
             </label>
           </div>
           <div id="settingsCourseBlock" hidden>
-            <p class="field" style="margin-bottom: 8px">选择课程</p>
+            <p class="settings-course-title">选择课程</p>
             <div id="settingsCourseGroups" class="course-groups"></div>
           </div>
           <div class="dialog-actions dialog-actions-save">
@@ -187,7 +190,7 @@
     </div>
 
     <script type="module">
-      import('./js/app.js?v=61').catch((err) => {
+      import('./js/app.js?v=80').catch((err) => {
         const el = document.getElementById('importStatus');
         if (el) {
           el.textContent =
