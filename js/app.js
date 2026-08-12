@@ -1054,8 +1054,27 @@ function registerSW() {
 }
 
 /**
+ * 在用户手势中打开系统文件选择器。
+ * <p>桌面 PWA / iOS 独立窗口里，点透明 file 覆盖层经常无反应，必须由可见按钮同步 {@code click()}。</p>
+ *
+ * @returns {void}
+ */
+function openPdfPicker() {
+  if (!els.pdfInput || els.uploadArea?.classList.contains('is-busy') || importing) {
+    return;
+  }
+  try {
+    els.pdfInput.value = '';
+    els.pdfInput.click();
+  } catch (err) {
+    console.warn('openPdfPicker failed', err);
+    setImportStatus('无法打开文件选择，请用系统浏览器打开后再试', 'error');
+  }
+}
+
+/**
  * 绑定文件选择：change + input，兼容部分安卓机型只触发其一。
- * <p>上传区额外提供一次编程式 {@code input.click()}，避免设置弹层关闭后 label 点按失灵。</p>
+ * <p>上传区用 click/keydown 同步唤起选择器，兼容「添加到主屏幕」后的独立窗口。</p>
  *
  * @returns {void}
  */
@@ -1083,15 +1102,15 @@ function bindPdfInput() {
   els.pdfInput.addEventListener('change', onPick);
   els.pdfInput.addEventListener('input', onPick);
 
-  // 设置里「重新导入」关弹层后，部分 WebView 上 label 无法唤起文件框
   els.uploadArea?.addEventListener('click', (event) => {
-    if (els.uploadArea.classList.contains('is-busy')) return;
-    if (event.target === els.pdfInput) return;
     event.preventDefault();
-    try {
-      els.pdfInput.click();
-    } catch {
-      /* 忽略无用户手势等异常 */
+    openPdfPicker();
+  });
+
+  els.uploadArea?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openPdfPicker();
     }
   });
 }
