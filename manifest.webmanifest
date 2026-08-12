@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "MPA课表",
   "short_name": "MPA课表",
   "description": "电子科技大学非全日制课表 PWA：导入学校 PDF，本地解析与离线查看，无需登录",

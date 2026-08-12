@@ -2,7 +2,7 @@
  * Service Worker：离线可打开；脚本/样式始终绕过 HTTP 缓存拉最新。
  */
 
-const CACHE = 'schedule-pwa-v84';
+const CACHE = 'schedule-pwa-v85';
 const ASSETS = [
   './index.html',
   './css/app.css',
@@ -27,10 +27,19 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('install', (event) => {
+  // 单个资源失败不拖垮整个 SW，避免「无法安装到桌面」
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      .then((cache) =>
+        Promise.all(
+          ASSETS.map((url) =>
+            cache.add(url).catch((err) => {
+              console.warn('SW cache skip', url, err);
+            })
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });

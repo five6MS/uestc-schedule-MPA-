@@ -22,7 +22,7 @@ GlobalWorkerOptions.workerSrc = new URL(
 ).href;
 
 /** 前端资源版本：与 sw / HTML 查询参数同步，用于强制刷新旧缓存 */
-const APP_VERSION = '49';
+const APP_VERSION = '85';
 
 /**
  * 版本升级时清掉旧 Service Worker 与 Cache，避免「选 PDF 没反应」。
@@ -79,6 +79,7 @@ const els = {
   standaloneFileFallback: document.getElementById('standaloneFileFallback'),
   uploadArea: document.getElementById('uploadArea'),
   uploadLabel: document.getElementById('uploadLabel'),
+  btnInstallApp: document.getElementById('btnInstallApp'),
   importStatus: document.getElementById('importStatus'),
   weekLabel: document.getElementById('weekLabel'),
   weekTerm: document.getElementById('weekTerm'),
@@ -1055,6 +1056,56 @@ function registerSW() {
   });
 }
 
+/** Chrome/Edge 捕获的安装事件；用于自定义「添加到主屏幕」按钮 */
+let deferredInstallPrompt = null;
+
+/**
+ * 绑定 PWA 安装提示：浏览器已很少自动弹条，改为页内按钮唤起系统安装框。
+ * <p>仅 Android Chrome/Edge 等支持 {@code beforeinstallprompt}；iOS 仍走分享菜单说明。</p>
+ *
+ * @returns {void}
+ */
+function bindInstallPrompt() {
+  const btn = els.btnInstallApp;
+  if (!btn) return;
+
+  // 已在桌面应用内：不显示安装按钮
+  if (isStandalonePwa()) {
+    btn.hidden = true;
+    return;
+  }
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    btn.hidden = false;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    btn.hidden = true;
+    setImportStatus('已添加到主屏幕', 'ok');
+  });
+
+  btn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      setImportStatus(
+        '请使用浏览器菜单：添加到主屏幕 / 安装应用（iPhone 请用 Safari 分享）',
+        'error'
+      );
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    try {
+      await deferredInstallPrompt.userChoice;
+    } catch {
+      /* 用户关闭即可 */
+    }
+    deferredInstallPrompt = null;
+    btn.hidden = true;
+  });
+}
+
 /**
  * 是否处于「添加到主屏幕 / 安装应用」后的独立窗口（非普通浏览器标签页）。
  *
@@ -1354,6 +1405,7 @@ els.btnCopyLink.addEventListener('click', async () => {
 });
 
 applyBrandTitle();
+bindInstallPrompt();
 
 (async () => {
   if (await migrateCachesIfNeeded()) return;
