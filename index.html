@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a3d2e" />
+    <meta
+      name="description"
+      content="电子科技大学非全日制课表：本地导入 PDF，按周查看，可离线、可添加到主屏幕，无需登录。"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="电子科大MPA课表" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <title>电子科大MPA课表</title>
+    <link rel="stylesheet" href="./css/app.css?v=49" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div>
+          <p class="brand" id="brandTitle">电子科大MPA课表</p>
+          <p class="sub" id="headerSub"></p>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="icon-btn" id="btnShare" aria-label="分享" title="分享">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"
+              />
+            </svg>
+          </button>
+          <button type="button" class="icon-btn" id="btnSettings" hidden aria-label="设置" title="设置">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.2 7.2 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.55-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.77 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.89 14.5a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.39 1.04.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.55 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.02-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="viewImport" class="panel">
+        <h1>导入课表 PDF</h1>
+
+        <label class="upload" id="uploadArea" for="pdfInput">
+          <!-- 不用 hidden：部分安卓自带浏览器对 display:none 的 file 选完无 change -->
+          <input
+            id="pdfInput"
+            class="file-input"
+            type="file"
+            accept=".pdf,application/pdf"
+            aria-label="选择课表 PDF 文件"
+          />
+          <span id="uploadLabel">点此选择 PDF 文件</span>
+        </label>
+
+        <p class="status" id="importStatus" role="status"></p>
+
+        <section id="classStep" class="class-step" hidden>
+          <label class="field">
+            <span>选择班级</span>
+            <select id="classSelect" aria-label="选择班级"></select>
+          </label>
+          <button type="button" class="primary block" id="btnConfirmClass">进入课表</button>
+        </section>
+
+        <section id="courseStep" class="class-step" hidden>
+          <p class="field" style="margin-bottom: 8px">每组任选 1 门课</p>
+          <div id="courseGroups" class="course-groups"></div>
+          <button type="button" class="primary block" id="btnConfirmCourses">进入课表</button>
+        </section>
+
+        <p class="tip">安卓：浏览器右上角菜单 → 添加到主屏幕 / 安装应用<br />苹果：Safari 分享 → 添加到主屏幕</p>
+      </main>
+
+      <main id="viewSchedule" class="panel" hidden>
+        <div class="week-nav">
+          <button type="button" class="nav-btn" id="btnPrev" aria-label="上一周">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+          </button>
+          <div class="week-title">
+            <strong id="weekLabel"></strong>
+            <span id="weekTerm" class="week-term" hidden></span>
+          </div>
+          <button type="button" class="nav-btn" id="btnNext" aria-label="下一周">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+            </svg>
+          </button>
+        </div>
+        <div class="week-jump" id="weekJump">
+          <div class="week-jump-main">
+            <span class="week-jump-label">选择周次</span>
+            <button type="button" class="week-picker-btn" id="btnWeekPicker" aria-haspopup="dialog" aria-label="选择周次">
+              <span class="week-picker-value" id="weekPickerValue">选择周次</span>
+            </button>
+          </div>
+          <button type="button" class="week-today-btn ghost" id="btnToday">本周</button>
+        </div>
+        <section class="days" id="days"></section>
+        <div id="weekEmptyState" class="week-empty-state" hidden>
+          <img src="./icons/week-empty.png?v=19" alt="本周无课" width="280" height="280" />
+        </div>
+      </main>
+
+      <dialog id="weekPickerDialog">
+        <div class="dialog-body week-picker-dialog">
+          <button type="button" class="dialog-close" id="btnCloseWeekPicker" aria-label="关闭">×</button>
+          <h2>选择周次</h2>
+          <div id="weekPickerList" class="week-picker-list" role="listbox" aria-label="课表周次"></div>
+        </div>
+      </dialog>
+
+      <dialog id="courseConfirmDialog">
+        <div class="dialog-body">
+          <h2>选课未完成</h2>
+          <p class="confirm-msg" id="courseConfirmMsg">还有组未选择，是否进入课表？</p>
+          <div class="dialog-actions dialog-actions-confirm">
+            <button type="button" class="ghost" id="btnCourseConfirmEnter">进入课表</button>
+            <button type="button" class="primary" id="btnCourseConfirmContinue">继续选择</button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog id="settingsDialog">
+        <div class="dialog-body">
+          <button type="button" class="dialog-close" id="btnCloseSettings" aria-label="关闭">×</button>
+          <h2>设置</h2>
+          <div id="settingsClassBlock">
+            <label class="field">
+              <span>班级</span>
+              <select id="settingsClass"></select>
+            </label>
+          </div>
+          <div id="settingsCourseBlock" hidden>
+            <p class="field" style="margin-bottom: 8px">修改选课（每组 1 门）</p>
+            <div id="settingsCourseGroups" class="course-groups"></div>
+          </div>
+          <div class="dialog-actions dialog-actions-save">
+            <button type="button" id="btnSaveSettings" class="primary">保存</button>
+          </div>
+          <div class="dialog-actions dialog-actions-bottom">
+            <button type="button" class="ghost block" id="btnReimport">重新导入课表</button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog id="shareDialog">
+        <div class="dialog-body">
+          <button type="button" class="dialog-close" id="btnCloseShare" aria-label="关闭">×</button>
+          <h2>分享应用</h2>
+
+          <div class="share-tabs" role="tablist">
+            <button type="button" class="share-tab active" data-tab="link" id="tabLink">链接</button>
+            <button type="button" class="share-tab" data-tab="qr" id="tabQr">二维码</button>
+          </div>
+
+          <div id="sharePaneLink" class="share-pane">
+            <div class="share-link-row">
+              <input id="shareUrlInput" type="text" readonly aria-label="分享链接" />
+              <button type="button" class="primary" id="btnCopyLink">复制</button>
+            </div>
+            <p class="share-status" id="copyStatus" role="status"></p>
+          </div>
+
+          <div id="sharePaneQr" class="share-pane" hidden>
+            <img id="shareQrImg" class="share-qr" alt="课表分享二维码，长按可保存" />
+            <a class="ghost block share-download" id="btnDownloadQr" download="电子科大MPA课表-二维码.png">下载二维码</a>
+          </div>
+        </div>
+      </dialog>
+    </div>
+
+    <script type="module">
+      import('./js/app.js?v=49').catch((err) => {
+        const el = document.getElementById('importStatus');
+        if (el) {
+          el.textContent =
+            '脚本加载失败：' + (err && err.message ? err.message : err) + '。请按 Ctrl+F5 强制刷新。';
+          el.className = 'status error';
+        }
+        console.error(err);
+      });
+    </script>
+    <script nomodule>
+      document.getElementById('importStatus').textContent =
+        '当前浏览器过旧，请换用系统自带浏览器或 Chrome / Safari 打开';
+      document.getElementById('importStatus').className = 'status error';
+    </script>
+  </body>
+</html>
