@@ -16,11 +16,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- iOS「添加到主屏幕」显示名；Android/Chrome 主要读 manifest.short_name -->
     <meta name="apple-mobile-web-app-title" content="MPA课表" />
-    <link rel="manifest" href="./manifest.webmanifest?v=57" />
+    <link rel="manifest" href="./manifest.webmanifest?v=61" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="icon" href="./icons/icon-192.png" />
     <title>电子科大MPA课表</title>
-    <link rel="stylesheet" href="./css/app.css?v=57" />
+    <link rel="stylesheet" href="./css/app.css?v=61" />
   </head>
   <body>
     <div class="app">
@@ -148,7 +148,7 @@
             </label>
           </div>
           <div id="settingsCourseBlock" hidden>
-            <p class="field" style="margin-bottom: 8px">修改选课（每组 1 门）</p>
+            <p class="field" style="margin-bottom: 8px">选择课程</p>
             <div id="settingsCourseGroups" class="course-groups"></div>
           </div>
           <div class="dialog-actions dialog-actions-save">
@@ -187,7 +187,7 @@
     </div>
 
     <script type="module">
-      import('./js/app.js?v=57').catch((err) => {
+      import('./js/app.js?v=61').catch((err) => {
         const el = document.getElementById('importStatus');
         if (el) {
           el.textContent =

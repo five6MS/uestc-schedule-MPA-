@@ -687,9 +687,9 @@ dialog .ghost {
 
 .slot-time {
   display: grid;
-  /* 左列固定宽：容纳「9-11节」，右列时钟纵向对齐 */
-  grid-template-columns: 4.6em auto minmax(0, 1fr);
-  column-gap: 0.35em;
+  /* 节次 + 时钟两列（无中间点），右列时间纵向对齐 */
+  grid-template-columns: 4.6em minmax(0, 1fr);
+  column-gap: 0.45em;
   align-items: baseline;
 }
 
@@ -701,7 +701,7 @@ dialog .ghost {
   align-items: baseline;
 }
 
-.slot-time:not(:has(.slot-sep)),
+.slot-time:not(:has(.slot-clock)),
 .slot-meta:not(:has(.slot-sep)) {
   grid-template-columns: minmax(0, 1fr);
 }

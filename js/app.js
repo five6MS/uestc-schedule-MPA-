@@ -566,21 +566,26 @@ function formatTeacherDisplay(name) {
 }
 
 /**
- * 拼「左列 · 右列」两栏行（节次/时间、老师/地点），便于纵向对齐。
- * <p>仅一侧有内容时不显示间隔点，避免孤立的「·」。</p>
+ * 拼「左列 / 右列」两栏行（节次与时间、老师与地点），便于纵向对齐。
+ * <p>老师行默认带「·」；时间行传 {@code withSep: false} 去掉中间点，仅靠列间距分开。</p>
  *
  * @param {string} leftClass 左列 class（如 {@code slot-period}）
  * @param {string} rightClass 右列 class（如 {@code slot-clock}）
  * @param {string} left 左列文案，来自 slot/cell 字段
  * @param {string} right 右列文案；空则整行只渲染左列
+ * @param {{withSep?: boolean}} [opts] {@code withSep} 默认 true；时间行传 false
  * @returns {string} 安全 HTML 片段；两侧皆空时为空串
  */
-function slotPairHtml(leftClass, rightClass, left, right) {
+function slotPairHtml(leftClass, rightClass, left, right, opts = {}) {
+  const withSep = opts.withSep !== false;
   const l = (left || '').trim();
   const r = (right || '').trim();
   if (!l && !r) return '';
   if (l && r) {
-    return `<span class="${leftClass}">${escapeHtml(l)}</span><span class="slot-sep" aria-hidden="true">·</span><span class="${rightClass}">${escapeHtml(r)}</span>`;
+    const sep = withSep
+      ? '<span class="slot-sep" aria-hidden="true">·</span>'
+      : '';
+    return `<span class="${leftClass}">${escapeHtml(l)}</span>${sep}<span class="${rightClass}">${escapeHtml(r)}</span>`;
   }
   const only = l || r;
   const cls = l ? leftClass : rightClass;
@@ -604,7 +609,10 @@ function renderDay(day, resolveCell) {
 
       const period = (slot.period || '').trim();
       const time = (slot.time || '').trim();
-      const timeInner = slotPairHtml('slot-period', 'slot-clock', period, time);
+      // 时间行不要中间「·」，老师·地点仍保留
+      const timeInner = slotPairHtml('slot-period', 'slot-clock', period, time, {
+        withSep: false,
+      });
       const course = (cell.course || '').trim();
       const teacher = formatTeacherDisplay(
         (cell.teacher || '').trim().replace(/\d+学时/g, '').trim()
