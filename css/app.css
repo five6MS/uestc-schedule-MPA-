@@ -43,7 +43,12 @@ body {
 .app {
   width: min(920px, 100%);
   margin: 0 auto;
-  padding: 16px 14px 36px;
+  /* iOS 刘海/灵动岛：viewport-fit=cover 时内容会顶到状态栏下，用安全区把顶栏顶下来 */
+  padding:
+    calc(16px + env(safe-area-inset-top, 0px))
+    calc(14px + env(safe-area-inset-right, 0px))
+    calc(36px + env(safe-area-inset-bottom, 0px))
+    calc(14px + env(safe-area-inset-left, 0px));
 }
 
 .top {
@@ -91,10 +96,12 @@ body {
 .sub {
   margin: 6px 0 0;
   color: rgba(240, 216, 120, 0.78);
-  font-size: 0.84rem;
-  letter-spacing: 0.04em;
-  line-height: 1.45;
-  word-break: break-all;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  /* 避免「期」等单字落到下一行；过长时在词间断行 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .panel {
@@ -480,20 +487,24 @@ dialog .ghost {
 }
 
 .week-picker-value {
-  font-size: 0.95rem;
+  /* 与右侧「本周」同字号，保证「第二周 09月12日 – 09月13日」单行显示 */
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--bg);
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, "Cascadia Mono", "Segoe UI", "PingFang SC", "Microsoft YaHei", monospace;
-  line-height: 1.4;
+  line-height: 1.3;
   letter-spacing: 0.01em;
-  white-space: pre-wrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .week-today-btn {
   min-width: 72px;
   min-height: 48px;
   padding: 0 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -509,12 +520,12 @@ dialog .ghost {
 
 .week-picker-list {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 6px 2px 10px;
+  padding: 4px 2px 8px;
   margin: 0 -2px;
   overscroll-behavior: contain;
 }
@@ -523,13 +534,14 @@ dialog .ghost {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 52px;
-  padding: 14px 16px;
+  gap: 10px;
+  min-height: 42px;
+  padding: 9px 12px;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
   background: #fff;
   color: var(--ink);
+  font-size: 0.875rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -551,7 +563,8 @@ dialog .ghost {
 .week-picker-option-text {
   flex: 1;
   min-width: 0;
-  line-height: 1.45;
+  font-size: 0.875rem;
+  line-height: 1.35;
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, "Cascadia Mono", "Segoe UI", "PingFang SC", "Microsoft YaHei", monospace;
   letter-spacing: 0.01em;

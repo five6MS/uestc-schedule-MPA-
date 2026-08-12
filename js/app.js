@@ -357,7 +357,9 @@ function applyBrandTitle() {
 
 /**
  * 主页副标题：班级或已选课摘要 · 年级 · 学期。
- * @returns {string}
+ * <p>选修模式用「已选 N 科」缩短文案，避免顶栏副标题换行挤出「期」字。</p>
+ *
+ * @returns {string} 无课表时为空串；有课表时为用间隔点拼接的摘要
  */
 function headerMetaText() {
   if (!store?.schedule) return '';
@@ -368,7 +370,7 @@ function headerMetaText() {
   let head = className || '';
   if (schedule.mode === 'elective') {
     const n = Object.keys(courseSelections || {}).length;
-    head = n ? `已选${n}组课` : '选修课表';
+    head = n ? `已选${n}科` : '选修课表';
   }
   return [head, grade, semester].filter(Boolean).join('  ·  ');
 }
