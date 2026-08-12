@@ -224,25 +224,29 @@ select:focus {
 }
 
 /*
- * file 本身不接收点击（PWA 独立窗口里 opacity:0 覆盖层常点不动），
- * 由 #uploadArea 在用户手势中调用 input.click()。
+ * 安卓「添加到主屏幕」独立窗口：
+ * - 不要用 clip / 1px / pointer-events:none，编程 click 与原生点击都会失效
+ * - 用接近透明的全尺寸覆盖层直接接收点击（opacity 用 0.01，不要用 0）
  */
 .file-input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
   border: 0;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0.01;
+  cursor: pointer;
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #uploadLabel {
   position: relative;
+  z-index: 1;
   pointer-events: none;
 }
 

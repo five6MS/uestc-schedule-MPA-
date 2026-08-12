@@ -16,11 +16,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- iOS「添加到主屏幕」显示名；Android/Chrome 主要读 manifest.short_name -->
     <meta name="apple-mobile-web-app-title" content="MPA课表" />
-    <link rel="manifest" href="./manifest.webmanifest?v=82" />
+    <link rel="manifest" href="./manifest.webmanifest?v=83" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="icon" href="./icons/icon-192.png" />
     <title>电子科大MPA课表</title>
-    <link rel="stylesheet" href="./css/app.css?v=82" />
+    <link rel="stylesheet" href="./css/app.css?v=83" />
   </head>
   <body>
     <div class="app">
@@ -60,15 +60,13 @@
 
         <h1>导入课表</h1>
 
-        <!-- 桌面 PWA 独立窗口中，透明 file 直接点常无响应；由外层按钮在手势里唤起 -->
+        <!-- 安卓桌面 PWA：file 需铺满可点（勿 clip/pointer-events:none），否则点击无反应 -->
         <div class="upload" id="uploadArea" role="button" tabindex="0" aria-label="选择课表 PDF 文件">
           <input
             id="pdfInput"
             class="file-input"
             type="file"
-            accept=".pdf,application/pdf"
-            tabindex="-1"
-            aria-hidden="true"
+            accept="application/pdf,.pdf"
           />
           <span id="uploadLabel">点此选择 PDF 文件</span>
         </div>
@@ -191,7 +189,7 @@
     </div>
 
     <script type="module">
-      import('./js/app.js?v=82').catch((err) => {
+      import('./js/app.js?v=83').catch((err) => {
         const el = document.getElementById('importStatus');
         if (el) {
           el.textContent =

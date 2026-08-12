@@ -1054,8 +1054,7 @@ function registerSW() {
 }
 
 /**
- * 在用户手势中打开系统文件选择器。
- * <p>桌面 PWA / iOS 独立窗口里，点透明 file 覆盖层经常无反应，必须由可见按钮同步 {@code click()}。</p>
+ * 在用户手势中打开系统文件选择器（兜底；安卓 PWA 优先靠全尺寸 file 原生点击）。
  *
  * @returns {void}
  */
@@ -1064,17 +1063,17 @@ function openPdfPicker() {
     return;
   }
   try {
-    els.pdfInput.value = '';
+    // 不在此处清空 value：部分安卓会打断紧接着的 click
     els.pdfInput.click();
   } catch (err) {
     console.warn('openPdfPicker failed', err);
-    setImportStatus('无法打开文件选择，请用系统浏览器打开后再试', 'error');
+    setImportStatus('无法打开文件选择，请到系统浏览器中打开本页再上传', 'error');
   }
 }
 
 /**
  * 绑定文件选择：change + input，兼容部分安卓机型只触发其一。
- * <p>上传区用 click/keydown 同步唤起选择器，兼容「添加到主屏幕」后的独立窗口。</p>
+ * <p>安卓桌面应用以全尺寸半透明 file 原生点击为主；外层再兜底一次 {@code click()}。</p>
  *
  * @returns {void}
  */
@@ -1096,14 +1095,19 @@ function bindPdfInput() {
     window.setTimeout(() => {
       els.pdfInput.value = '';
       lastToken = '';
-    }, 300);
+    }, 500);
   };
 
   els.pdfInput.addEventListener('change', onPick);
   els.pdfInput.addEventListener('input', onPick);
 
+  // 点到 file 本身：走原生，勿 preventDefault（安卓独立窗口会因此打不开）
   els.uploadArea?.addEventListener('click', (event) => {
-    event.preventDefault();
+    if (els.uploadArea.classList.contains('is-busy') || importing) {
+      event.preventDefault();
+      return;
+    }
+    if (event.target === els.pdfInput) return;
     openPdfPicker();
   });
 
