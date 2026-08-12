@@ -547,8 +547,48 @@ function isNormalClass(cell) {
 }
 
 /**
+ * 展示用人名排版：两字名中间插全角空格，与三字名同宽对齐。
+ * <p>例如「陈霞」→「陈　霞」，与「陈良雨」左列对齐；非恰好两字则原样返回。</p>
+ *
+ * @param {string} name 老师姓名，来自课表单元格 {@code teacher}（已去学时等杂质）
+ * @returns {string} 用于界面展示的姓名；空串原样返回
+ */
+function formatTeacherDisplay(name) {
+  const n = (name || '').trim();
+  if (!n) return '';
+  // 恰好两个汉字时插全角空格（排版惯例）；含间隔点/多姓名不处理
+  if (/^[\u4e00-\u9fff]{2}$/.test(n)) {
+    return `${n[0]}　${n[1]}`;
+  }
+  return n;
+}
+
+/**
+ * 拼「左列 · 右列」两栏行（节次/时间、老师/地点），便于纵向对齐。
+ * <p>仅一侧有内容时不显示间隔点，避免孤立的「·」。</p>
+ *
+ * @param {string} leftClass 左列 class（如 {@code slot-period}）
+ * @param {string} rightClass 右列 class（如 {@code slot-clock}）
+ * @param {string} left 左列文案，来自 slot/cell 字段
+ * @param {string} right 右列文案；空则整行只渲染左列
+ * @returns {string} 安全 HTML 片段；两侧皆空时为空串
+ */
+function slotPairHtml(leftClass, rightClass, left, right) {
+  const l = (left || '').trim();
+  const r = (right || '').trim();
+  if (!l && !r) return '';
+  if (l && r) {
+    return `<span class="${leftClass}">${escapeHtml(l)}</span><span class="slot-sep" aria-hidden="true">·</span><span class="${rightClass}">${escapeHtml(r)}</span>`;
+  }
+  const only = l || r;
+  const cls = l ? leftClass : rightClass;
+  return `<span class="${cls}">${escapeHtml(only)}</span>`;
+}
+
+/**
  * 渲染单日卡片：只罗列有课的时段；该日全无课则不输出。
  * <p>展示顺序：时间 → 课程名 →「老师 · 地点」（缺项不显示、不留空）。</p>
+ * <p>时间行、元信息行拆成固定左列 + 右列，使「·」后时间/地点在多门课之间纵向对齐。</p>
  *
  * @param {object} day 日对象
  * @param {(slot:object)=>object} resolveCell 由时段解析出要展示的单元格
@@ -562,22 +602,24 @@ function renderDay(day, resolveCell) {
 
       const period = (slot.period || '').trim();
       const time = (slot.time || '').trim();
-      const timeLine = [period, time].filter(Boolean).join(' · ');
+      const timeInner = slotPairHtml('slot-period', 'slot-clock', period, time);
       const course = (cell.course || '').trim();
-      const teacher = (cell.teacher || '').trim().replace(/\d+学时/g, '').trim();
+      const teacher = formatTeacherDisplay(
+        (cell.teacher || '').trim().replace(/\d+学时/g, '').trim()
+      );
       const location = (cell.location || '')
         .trim()
         .replace(/（?\d+学时）?/g, '')
         .replace(/\d+学时/g, '')
         .trim();
-      const metaLine = [teacher, location].filter(Boolean).join(' · ');
+      const metaInner = slotPairHtml('slot-teacher', 'slot-loc', teacher, location);
 
-      if (!timeLine && !course && !metaLine) return '';
+      if (!timeInner && !course && !metaInner) return '';
 
       return `<article class="slot">
-        ${timeLine ? `<div class="slot-time">${escapeHtml(timeLine)}</div>` : ''}
+        ${timeInner ? `<div class="slot-time">${timeInner}</div>` : ''}
         ${course ? `<div class="slot-course">${escapeHtml(course)}</div>` : ''}
-        ${metaLine ? `<div class="slot-meta">${escapeHtml(metaLine)}</div>` : ''}
+        ${metaInner ? `<div class="slot-meta">${metaInner}</div>` : ''}
       </article>`;
     })
     .filter(Boolean)

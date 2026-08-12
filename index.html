@@ -7,18 +7,20 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="theme-color" content="#0a3d2e" />
+    <meta name="application-name" content="MPA课表" />
     <meta
       name="description"
       content="电子科技大学非全日制课表：本地导入 PDF，按周查看，可离线、可添加到主屏幕，无需登录。"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="成电课表" />
-    <link rel="manifest" href="./manifest.webmanifest" />
+    <!-- iOS「添加到主屏幕」显示名；Android/Chrome 主要读 manifest.short_name -->
+    <meta name="apple-mobile-web-app-title" content="MPA课表" />
+    <link rel="manifest" href="./manifest.webmanifest?v=56" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="icon" href="./icons/icon-192.png" />
     <title>电子科大MPA课表</title>
-    <link rel="stylesheet" href="./css/app.css?v=50" />
+    <link rel="stylesheet" href="./css/app.css?v=56" />
   </head>
   <body>
     <div class="app">
@@ -107,9 +109,12 @@
           </div>
           <button type="button" class="week-today-btn ghost" id="btnToday">本周</button>
         </div>
-        <section class="days" id="days"></section>
-        <div id="weekEmptyState" class="week-empty-state" hidden>
-          <img src="./icons/week-empty.png?v=19" alt="本周无课" width="280" height="280" />
+        <!-- 仅课程卡片区滚动；周次导航与选择周次固定在上方 -->
+        <div class="schedule-scroll">
+          <section class="days" id="days"></section>
+          <div id="weekEmptyState" class="week-empty-state" hidden>
+            <img src="./icons/week-empty.png?v=19" alt="本周无课" width="280" height="280" />
+          </div>
         </div>
       </main>
 
@@ -182,7 +187,7 @@
     </div>
 
     <script type="module">
-      import('./js/app.js?v=50').catch((err) => {
+      import('./js/app.js?v=56').catch((err) => {
         const el = document.getElementById('importStatus');
         if (el) {
           el.textContent =
